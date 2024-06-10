@@ -1,9 +1,15 @@
 [build-system]
-requires = ["maturin>=1.6,<2.0"]
+requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "graph_jpr"
+name = "graph-jpr"
+authors = [
+    { name="Samuel Erickson", email="samer177@student.liu.se" },
+]
+license = {text = "MIT License"}
+readme = "README.md"
+description = "Joint partial regression method for sparse inverse covariance estimation."
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Rust",
@@ -13,3 +19,6 @@ classifiers = [
 dynamic = ["version"]
 [tool.maturin]
 features = ["pyo3/extension-module"]
+
+[project.urls]
+Homepage = "https://github.com/Samuel-Erickson-Andersson/Joint-Partial-Regression"
