@@ -44,8 +44,50 @@ pub fn estimate_variance(y: &Array1<f64>, x: &Array2<f64>, theta: &Array1<f64>, 
     if rho > 0.0 {
         residuals = residuals.iter().cloned().filter(|&x| x.abs() < rho).collect();
     }
-    residuals.iter().map(|x| x.powi(2)).sum::<f64>() / (residuals.len() as f64)
+    mse(residuals)
 }
+
+pub fn mse(residual: Array1<f64>) -> f64 {
+    let n = residual.len() as f64;
+    residual.iter().map(|x| x.powi(2)).sum::<f64>() / n
+}
+
+pub fn ic(
+    y: &Array1<f64>,
+    x: &Array2<f64>,
+    theta: &Array1<f64>,
+    intercept: f64,
+    criterion: &str
+) -> f64 {
+    let n = y.len() as f64;
+    let df = theta.iter().filter(|&x| x.abs() > 1e-6).count() as f64;
+    let mse = mse(y - intercept - theta.dot(&x.t()));
+    let var = (y - intercept).iter().map(|x| x.powi(2)).sum::<f64>() / (n as f64);
+
+    if criterion == "AIC" {
+        mse / var + 2.0 * df / n
+    } else if criterion == "BIC" {
+        mse / var + n.ln() * df / n
+    } else {
+        panic!("Invalid information criterion.");
+    }
+}
+
+// pub fn aic(y: &Array1<f64>, x: &Array2<f64>, theta: &Array1<f64>, intercept: f64) -> f64 {
+//     let n = y.len() as f64;
+//     let df = theta.iter().filter(|&x| x.abs() > 1e-6).count() as f64;
+//     let mse = mse(y - intercept - theta.dot(&x.t()));
+//     let var = (y - intercept).iter().map(|x| x.powi(2)).sum::<f64>() / (n as f64);
+//     mse / var + 2.0 * df / n
+// }
+
+// pub fn bic(y: &Array1<f64>, x: &Array2<f64>, theta: &Array1<f64>, intercept: f64) -> f64 {
+//     let n = y.len() as f64;
+//     let df = theta.iter().filter(|&x| *x != 0.0).count() as f64;
+//     let mse = mse(y - intercept - theta.dot(&x.t()));
+//     let var = (y - intercept).iter().map(|x| x.powi(2)).sum::<f64>() / (n as f64);
+//     mse / var + n.ln() * df / n
+// }
 
 pub fn remove_column(matrix: &Array2<f64>, j: usize) -> Array2<f64> {
     let p = matrix.ncols();
@@ -91,4 +133,24 @@ pub fn split_data(data: &Array2<f64>, response: &Array1<f64>, fold: usize, cv_fo
     }
 
     (stack(Axis(0), &train_data).unwrap(), stack(Axis(0), &test_data).unwrap(), Array1::from(train_response), Array1::from(test_response))
+}
+
+pub fn geomspace(start: f64, stop: f64, num: usize) -> Vec<f64> {
+    let mut result = Vec::with_capacity(num);
+
+    let factor: f64;
+    if num > 1 {
+        factor = (stop / start).powf(1.0 / (num - 1) as f64);
+    } else {
+        result.push(start);
+        return result;
+    }
+
+    let mut current = start;
+    for _ in 0..num {
+        result.push(current);
+        current *= factor;
+    }
+
+    result
 }

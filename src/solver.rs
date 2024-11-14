@@ -69,14 +69,15 @@ pub fn fista(
     alpha: f64,
     max_iter: usize,
     tol: f64,
-    theta_start: &Array1<f64>
+    theta_start: &Array1<f64>,
+    intercept_start: f64,
 ) -> (Array1<f64>, f64, Status) {
     
     let n = x.nrows() as f64;
     let mut theta_curr = theta_start.clone();
     let mut theta_old = theta_start.clone();
-    let mut intercept_curr = 0.0;
-    let mut intercept_old = 0.0;
+    let mut intercept_curr = intercept_start;
+    let mut intercept_old = intercept_start;
 
     if fit_intercept {
         intercept_curr = y.iter().sum::<f64>() / n;
@@ -144,11 +145,7 @@ fn soft_threshold(theta: &Array1<f64>, lambda: f64) -> Array1<f64> {
     theta_new
 }
 
-fn huber_grad(
-    x: &Array2<f64>,
-    residuals: &Array1<f64>,
-    rho: f64,
-) -> Array1<f64> {  
+fn huber_grad(x: &Array2<f64>, residuals: &Array1<f64>, rho: f64) -> Array1<f64> {  
     let huber = residuals.map(|x| if x.abs() <= rho { *x } else { rho * x.signum() });    
     huber.dot(x)
 }
@@ -203,16 +200,18 @@ fn prox_h(v: Array2<f64>, tau2: &Array1<f64>, lambdas: Array1<f64>) -> Array2<f6
         for k in 0..p {
             if k == j {
                 prox[[j, j]] = 1.0 / tau2[j];
-            } else {
-                let threshold = lambdas[j] * tau2[j];
-                prox[[k, j]] = if v_j[k] > threshold {
-                    v_j[k] - threshold
-                } else if v_j[k] < -threshold {
-                    v_j[k] + threshold
-                } else {
-                    0.0
-                };
+                continue;
             };
+            
+            let threshold = lambdas[j] * tau2[j];
+            prox[[k, j]] = if v_j[k] > threshold {
+                v_j[k] - threshold
+            } else if v_j[k] < -threshold {
+                v_j[k] + threshold
+            } else {
+                0.0
+            };
+            
         }
     }
 
