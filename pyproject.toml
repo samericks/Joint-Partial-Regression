@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "graph-jpr"
 authors = [
-    { name="Samuel Erickson", email="samer177@student.liu.se" },
+    { name="Samuel Erickson", email="samuelea@kth.se" },
 ]
 license = {text = "MIT License"}
 readme = "README.md"
